@@ -7,56 +7,51 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 import config
+from selendownloader import download
+
+
+def del_spaces(text):
+    while text[0] == ' ':
+        text = text[1:]
+    text = text[::-1]
+    while text[0] == ' ':
+        text = text[1:]
+    return text[::-1]
 
 
 def parse_ozon(URL):
-    print("Это селениум")
-    """
     parsed = {}
-    parsed['url'] = URL + 'reviews/'
+    parsed['url'] = URL
     art = ''
-    print(URL[:-1])
     for symb in reversed(URL[:-1]):
         if symb >= '0' and symb <= '9':
             art = art + symb
         else:
             break
     parsed['Art'] = art[::-1]
-    print(parsed['url'])
-    response = requests.get(parsed['url'], headers=config.headers)
-    print(response.status_code)
-    soup = BeautifulSoup(response.content, "html.parser")
-    print(soup)
+    response = download(URL + 'reviews/')
+    soup = BeautifulSoup(response, "html.parser")
     items = soup.find('div', {"class": "container e0x"})
     item = items.find('a', {"class": "ao6"})
-    parsed['Name'] = item.text
+    name = item.text
+    name = name.replace(u'\n', u'')
+    parsed['Name'] = del_spaces(name)
+    item = items.find('span', {"class": "c2h5 c2h6"})
+    price = ''
+    for symb in item.find('span').text:
+        if symb >= '0' and symb <= '9':
+            price = price + symb
+    parsed['Price'] = price
     item = items.find('div', {"class": "_1DjF"})
     k_otz1 = item.find('span', {"class": "hRqg _13gh"}).text
-    print(k_otz1)
     k_otz = ''
     for symb in k_otz1:
         if symb >= '0' and symb <= '9':
             k_otz = k_otz + symb
     parsed['Col_otz'] = k_otz
     print(parsed)
-    items = items.find_all('div', {"class": "bo3"})
-    k = 0
-    for i in items:
-        if k == 1:
-            k += 1
-            item = i.find('span', {"class": "c2h5 c2h6"}).find('span')
-            text = item.text
-            text = text.replace(u'\xa0', u' ')
-            price = ''
-            for symb in text:
-                if symb >= '0' and symb <= '9':
-                    price = price + symb
-            parsed['Price'] = price
-        else:
-            k += 1
-    items = soup.find('a', {"class": "_1-6r _3UDF"})['href']
     rev = []
-    return parsed, rev"""
+    return parsed, rev
 
 
 def ozon_rev(link):
@@ -171,4 +166,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parse_ozon('https://www.ozon.ru/product/tabletki-dlya-posudomoechnyh-mashin-synergetic-besfosfatnye-55-sht-55-sht-181952391/')
