@@ -9,36 +9,36 @@ from loguru import logger
 import config
 
 
-HEADERS = {'content-type': 'application/json',
-           'accept': 'application/json',
-           'referer': 'https://www.ozon.ru/product/gornyy-velosiped-rush-hour-rx-905-29-2021-228058566/',
-           'componentName': 'listReviewsDesktop',
-           'accept-language': 'ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7',
-           'accept-encoding': 'gzip, deflate, br'}
-
-
 def parse_ozon(URL):
+    print("Это селениум")
+    """
     parsed = {}
-    parsed['url'] = URL
-    response = requests.get(URL, headers=config.headers)
-    soup = BeautifulSoup(response.content, "html.parser")
-    items = soup.find('div', {"class": "container e0x"})
-    item = items.find('h1', {"class": "e8i9"})
-    parsed['Name'] = item.text
-    art1 = items.find('span', {"class": "fk fk1"}).text
-    otz = items.find('a', {"class": "_1-6r _3UDF"})
-    k_otz1 = otz.find('div', {"class": "kxa6"}).text
+    parsed['url'] = URL + 'reviews/'
     art = ''
-    for symb in art1:
+    print(URL[:-1])
+    for symb in reversed(URL[:-1]):
         if symb >= '0' and symb <= '9':
             art = art + symb
-    parsed['Art'] = art
+        else:
+            break
+    parsed['Art'] = art[::-1]
+    print(parsed['url'])
+    response = requests.get(parsed['url'], headers=config.headers)
+    print(response.status_code)
+    soup = BeautifulSoup(response.content, "html.parser")
+    print(soup)
+    items = soup.find('div', {"class": "container e0x"})
+    item = items.find('a', {"class": "ao6"})
+    parsed['Name'] = item.text
+    item = items.find('div', {"class": "_1DjF"})
+    k_otz1 = item.find('span', {"class": "hRqg _13gh"}).text
+    print(k_otz1)
     k_otz = ''
     for symb in k_otz1:
         if symb >= '0' and symb <= '9':
             k_otz = k_otz + symb
     parsed['Col_otz'] = k_otz
-
+    print(parsed)
     items = items.find_all('div', {"class": "bo3"})
     k = 0
     for i in items:
@@ -56,7 +56,7 @@ def parse_ozon(URL):
             k += 1
     items = soup.find('a', {"class": "_1-6r _3UDF"})['href']
     rev = []
-    return parsed, rev
+    return parsed, rev"""
 
 
 def ozon_rev(link):
@@ -148,7 +148,7 @@ def switch(link):
         return parse_ozon(link)
 
 
-if __name__ == "__main__":
+def main():
     while True:
         try:
             logger.info('api url:' + config.url)
@@ -168,10 +168,7 @@ if __name__ == "__main__":
             logger.error('cant connect to server, try to change API_URL in env')
             time.sleep(3)
         time.sleep(config.delay)
-    """ 
-    Произошел пиздец теперь озон все вызывает через js со всякими токенами
-    link = 'https://www.ozon.ru/api/composer-api.bx/widget/json/v2'
-    response = requests.post(link, headers=HEADERS, data=json.dumps({'asyncData': 'eyJ1cmwiOiIvcHJvZHVjdC9nb3JueXktdmVsb3NpcGVkLXJ1c2gtaG91ci1yeC05MDUtMjktMjAyMS0yMjgwNTg1NjYvP2xheW91dF9jb250YWluZXI9cGRwUmV2aWV3c1x1MDAyNmxheW91dF9wYWdlX2luZGV4PTIiLCJjaSI6eyJpZCI6NDI4NTY1LCJuYW1lIjoibGlzdFJldmlld3NEZXNrdG9wIiwidmVydGljYWwiOiJycFByb2R1Y3QiLCJ2ZXJzaW9uIjoxLCJwYXJhbXMiOlt7Im5hbWUiOiJwYWdpbmF0aW9uVHlwZSIsInRleHQiOiJsb2FkTW9yZUJ1dHRvbiJ9LHsibmFtZSI6InNvcnRpbmdUeXBlIiwidGV4dCI6InVzZWZ1bG5lc3NfZGVzYyJ9LHsibmFtZSI6InBhcmFtUGFnZVNpemUiLCJpbnQiOjV9LHsibmFtZSI6InBhcmFtVmFyaWFudE1vZGVFbmFibGVkIn0seyJuYW1lIjoidmlkZW9BbGxvd2VkIiwiYm9vbCI6dHJ1ZX1dfX0=',
-                                                                     'componentName': 'listReviewsDesktop',
-                                                                     'extraBody': 'true'}))
-    print(response.content)"""
+
+
+if __name__ == "__main__":
+    main()
