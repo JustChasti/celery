@@ -42,38 +42,36 @@ def parse_ozon(URL):
         if symb >= '0' and symb <= '9':
             price = price + symb
     parsed['Price'] = price
-    item = items.find('div', {"class": "_1DjF"})
+    item = soup.find('div', {"class": "_1DjF"})
     k_otz1 = item.find('span', {"class": "hRqg _13gh"}).text
     k_otz = ''
     for symb in k_otz1:
         if symb >= '0' and symb <= '9':
             k_otz = k_otz + symb
     parsed['Col_otz'] = k_otz
-    print(parsed)
-    rev = []
+    rev = ozon_rev(URL + 'reviews/')
     return parsed, rev
 
 
 def ozon_rev(link):
-    response = requests.get(link, headers=config.headers)
-    soup = BeautifulSoup(response.content, "html.parser")
-    items = soup.find('div', {"class": "b0h8 b0i b0j3 b0j9"})
+    response = download(link)
+    soup = BeautifulSoup(response, "html.parser")
+    items = soup.find_all('div', {"class": "gb4"})
     rev_list = []
-    logger.info(items)
     for i in items:
         otz = {}
-        name = i.find('span', {"class": "a6x9"}).text
+        name = i.find('span', {"class": "e2w5"}).text
         otz["Name"] = name
-        r = i.find_all('span', {"class": "a5a9"})
+        r = i.find_all('span', {"class": "e2u6"})
         coment = ''
         stars = i.find('div', {"class": "_3xol"})['style'][6:9]
-        if stars == '104':
+        if stars == '100':
             otz["Mark"] = 5
-        elif stars == '83.':
+        elif stars == '80%':
             otz["Mark"] = 4
-        elif stars == '62.':
+        elif stars == '60%':
             otz["Mark"] = 3
-        elif stars == '41.':
+        elif stars == '40%':
             otz["Mark"] = 2
         else:
             otz["Mark"] = 1
@@ -135,12 +133,21 @@ def parse_wb(URL):
     return parsed, rev_list
 
 
-def switch(link):
+def switch(link, flag):
     s = link[12:]
     if s[0] == 'w':
         return parse_wb(link)
     else:
-        return parse_ozon(link)
+        try:
+            return parse_ozon(link)
+        except Exception as e:
+            logger.warning("Не прогрузило")
+            flag += 1
+            if flag <= 3:
+                switch(link, flag)
+            else:
+                logger.exception(e)
+                return None
 
 
 def main():
@@ -153,7 +160,7 @@ def main():
             for i in answer:
                 try:
                     logger.info(str(i['link']))
-                    a = switch(i['link'])
+                    a = switch(i['link'], 0)
                     answer = requests.put(config.url + 'links/update/',
                                           data=json.dumps(a), verify=False)
                     logger.info('- link updated')
@@ -166,4 +173,4 @@ def main():
 
 
 if __name__ == "__main__":
-    parse_ozon('https://www.ozon.ru/product/tabletki-dlya-posudomoechnyh-mashin-synergetic-besfosfatnye-55-sht-55-sht-181952391/')
+    main()
