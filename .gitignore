@@ -45,3 +45,6 @@ dmypy.json
 .pyre/
 
 .idea/
+ghostdriver.log
+parser/__pycache__/config.cpython-38.pyc
+parser/__pycache__/selendownloader.cpython-38.pyc

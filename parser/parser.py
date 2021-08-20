@@ -10,6 +10,10 @@ import config
 from selendownloader import download
 
 
+class SelConnException(Exception):
+    pass
+
+
 def del_spaces(text):
     while text[0] == ' ':
         text = text[1:]
@@ -49,7 +53,8 @@ def parse_ozon(URL):
         if symb >= '0' and symb <= '9':
             k_otz = k_otz + symb
     parsed['Col_otz'] = k_otz
-    rev = ozon_rev(URL + 'reviews/')
+    # rev = ozon_rev(URL + 'reviews/')
+    rev = []
     return parsed, rev
 
 
@@ -141,13 +146,13 @@ def switch(link, flag):
         try:
             return parse_ozon(link)
         except Exception as e:
-            logger.warning("Не прогрузило")
+            logger.warning("Сасао")
             flag += 1
             if flag <= 3:
                 switch(link, flag)
             else:
                 logger.exception(e)
-                return None
+                raise SelConnException
 
 
 def main():
